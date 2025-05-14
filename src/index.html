@@ -27,6 +27,13 @@
             display: none !important;
         }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+        }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -44,6 +51,9 @@
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
 
             h2 {
                 text-align: center;
@@ -92,16 +102,32 @@
             padding: 10px;
             overflow-y: auto;
             border-bottom: 1px solid #444;
+
+            scrollbar-width: thin;
+            scrollbar-color: #555 #2c2c2c;
+        }
+
+        #messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #messages::-webkit-scrollbar-track {
+            background: #2c2c2c;
+        }
+
+        #messages::-webkit-scrollbar-thumb {
+            background-color: #555;
+            border-radius: 4px;
+        }
+
+        #messages::-webkit-scrollbar-thumb:hover {
+            background-color: #777;
         }
 
         #input__container {
             display: flex;
             padding: 10px;
             background-color: #333;
-
-            input:focus {
-                outline: none;
-            }
         }
 
         #message__input {
@@ -143,9 +169,11 @@
         const inputNickname = document.getElementById('nickname__input');
         const buttonNickname = document.getElementById('nickname__button');
 
+        const nicknameRegex = /^[a-zA-Z]{3,15}$/;
+
         buttonNickname.addEventListener('click', () => {
-            const nicknameValue = inputNickname.value;
-            if (nicknameValue) {
+            const nicknameValue = inputNickname.value.trim();
+            if (nicknameRegex.test(nicknameValue)) {
                 localStorage.setItem('nickname', nicknameValue);
                 document.getElementById('nickname__menu').classList.add('hidden');
                 document.getElementById('chat__container').classList.remove('hidden');
@@ -156,17 +184,25 @@
         const button = document.getElementById('send__button');
         const chat = document.getElementById('messages');
 
+        const messageRegex = /^.{1,200}$/;
+
         button.addEventListener('click', () => {
-            const data = input.value;
-            if (data) socket.emit('message', `${nickname}: ${data}`);
-            input.value = '';
+            const nickname = localStorage.getItem('nickname');
+            const data = input.value.trim();
+            if (messageRegex.test(data)) {
+                socket.emit('message', `${nickname}: ${data}`);
+                input.value = '';
+            }
         });
 
         input.addEventListener('keypress', (event) => {
+            const nickname = localStorage.getItem('nickname');
             if (event.key === 'Enter') {
-                const data = input.value;
-                if (data) socket.emit('message', `${nickname}: ${data}`);
-                input.value = '';
+                const data = input.value.trim();
+                if (messageRegex.test(data)) {
+                    socket.emit('message', `${nickname}: ${data}`);
+                    input.value = '';
+                }
             }
         });
 
