@@ -20,34 +20,31 @@ class App {
     }
 
     listenServer() {
-        this.http.listen(3001, () => {
-            console.log('Server is running on port 3001');
+        this.http.listen(8080, () => {
+            console.log('Server is running on port 8080');
         });
     }
 
     listenSocket() {
+        const messages: { content: string; timestamp: number }[] = [];
+
         this.io.on('connection', (socket) => {
             console.log(`User connected: ${socket.id}`);
 
-            const filePath = path.join(__dirname, '../chat-history.txt');
-            fs.readFile(filePath, 'utf-8', (err, data) => {
-                if (!err && data) {
-                    const messages = data.split('\n').filter(line => line.trim() !== '');
-                    socket.emit('history', messages);
-                }
-            });
+            socket.emit('history', messages.map(msg => msg.content));
 
             socket.on('message', (data) => {
+                const timestamp = Date.now();
+                messages.push({ content: data, timestamp });
+
                 this.io.emit('message', data);
 
                 console.log(`Message received: ${data}`);
 
-                const logEntry = '\n' + data + '\n';
-                fs.appendFile(filePath, logEntry, (err) => {
-                    if (err) {
-                        console.error('Failed to save message to history:', err);
-                    }
-                });
+                const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
+                while (messages.length > 0 && (messages[0]?.timestamp ?? Infinity) < thirtyMinutesAgo) {
+                    messages.shift();
+                }
             });
         });
     }
