@@ -1,6 +1,8 @@
 import express, { Application } from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
+import fs from 'fs';
+import path from 'path';
 
 class App {
 
@@ -25,12 +27,29 @@ class App {
 
     listenSocket() {
         this.io.on('connection', (socket) => {
-            console.log(socket.id);
+            console.log(`User connected: ${socket.id}`);
+
+            const filePath = path.join(__dirname, '../chat-history.txt');
+            fs.readFile(filePath, 'utf-8', (err, data) => {
+                if (!err && data) {
+                    const messages = data.split('\n').filter(line => line.trim() !== '');
+                    socket.emit('history', messages);
+                }
+            });
 
             socket.on('message', (data) => {
                 this.io.emit('message', data);
-            })
-        })
+
+                console.log(`Message received: ${data}`);
+
+                const logEntry = '\n' + data + '\n';
+                fs.appendFile(filePath, logEntry, (err) => {
+                    if (err) {
+                        console.error('Failed to save message to history:', err);
+                    }
+                });
+            });
+        });
     }
     setupRoutes() {
         this.app.get('/', (req, res) => {

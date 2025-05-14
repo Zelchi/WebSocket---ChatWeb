@@ -8,7 +8,14 @@
 </head>
 
 <body>
-    <div id="chat__container">
+
+    <div id="nickname__menu" class="hidden">
+        <h2>Escolha seu nickname</h2>
+        <input type="text" id="nickname__input" placeholder="Digite seu nickname...">
+        <button id="nickname__button">Entrar</button>
+    </div>
+
+    <div id="chat__container" class="hidden">
         <div id="messages"></div>
         <div id="input__container">
             <input type="text" id="message__input" placeholder="Digite sua mensagem...">
@@ -16,6 +23,10 @@
         </div>
     </div>
     <style>
+        .hidden {
+            display: none !important;
+        }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -25,6 +36,44 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+        }
+
+        #nickname__menu {
+            width: 400px;
+            background-color: #2c2c2c;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+
+            h2 {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+        }
+
+        #nickname__input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #444;
+            color: #fff;
+        }
+
+        #nickname__button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #5a5a5a;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #nickname__button:hover {
+            background-color: #777;
         }
 
         #chat__container {
@@ -82,28 +131,58 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io();
-        
+
+        const nickname = localStorage.getItem('nickname');
+
+        if (!nickname) {
+            document.getElementById('nickname__menu').classList.remove('hidden');
+        } else {
+            document.getElementById('chat__container').classList.remove('hidden');
+        }
+
+        const inputNickname = document.getElementById('nickname__input');
+        const buttonNickname = document.getElementById('nickname__button');
+
+        buttonNickname.addEventListener('click', () => {
+            const nicknameValue = inputNickname.value;
+            if (nicknameValue) {
+                localStorage.setItem('nickname', nicknameValue);
+                document.getElementById('nickname__menu').classList.add('hidden');
+                document.getElementById('chat__container').classList.remove('hidden');
+            }
+        });
+
         const input = document.getElementById('message__input');
         const button = document.getElementById('send__button');
+        const chat = document.getElementById('messages');
+
         button.addEventListener('click', () => {
             const data = input.value;
-            if (data) socket.emit('message', data);
+            if (data) socket.emit('message', `${nickname}: ${data}`);
             input.value = '';
-        })
+        });
+
         input.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
                 const data = input.value;
-                if (data) socket.emit('message', data);
+                if (data) socket.emit('message', `${nickname}: ${data}`);
                 input.value = '';
             }
-        })
+        });
 
-        const chat = document.getElementById('messages');
+        socket.on('history', (messages) => {
+            messages.forEach((message) => {
+                const msgElement = document.createElement('p');
+                msgElement.textContent = message;
+                chat.appendChild(msgElement);
+            });
+        });
+
         socket.on('message', (data) => {
             const message = document.createElement('p');
             message.textContent = data;
             chat.appendChild(message);
-        })
+        });
     </script>
 </body>
 

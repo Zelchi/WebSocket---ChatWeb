@@ -1,9 +1,11 @@
 {
   "name": "chatweb",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.ts",
   "scripts": {
-    "dev": "tsx watch server.ts"
+    "dev": "tsx watch server.ts",
+    "build": "npx esbuild server.ts --bundle --platform=node --outfile=dist/server.js --minify --external:socket.io && copy src\\index.html dist\\index.html",
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
