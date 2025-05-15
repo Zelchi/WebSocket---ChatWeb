@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Web</title>
+    <link rel="stylesheet" href="styles/index.css">
+    <link rel="stylesheet" href="styles/chat.css">
+    <link rel="stylesheet" href="styles/nickname.css">
+    <link rel="stylesheet" href="styles/utils.css">
 </head>
 
 <body>
@@ -16,210 +20,17 @@
     </div>
 
     <div id="chat__container" class="hidden">
+        <div id="user__count" style="text-align: center; margin: 10px;"></div>
         <div id="messages"></div>
         <div id="input__container">
             <input type="text" id="message__input" placeholder="Digite sua mensagem...">
             <button id="send__button">Enviar</button>
         </div>
+        <div id="user__list" style="text-align: center; margin: 10px;"></div>
     </div>
-    <style>
-        .hidden {
-            display: none !important;
-        }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            outline: none;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #1c1c1c;
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        #nickname__menu {
-            width: 400px;
-            background-color: #2c2c2c;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-
-            h2 {
-                text-align: center;
-                margin-bottom: 20px;
-            }
-        }
-
-        #nickname__input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: #444;
-            color: #fff;
-        }
-
-        #nickname__button {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: #5a5a5a;
-            color: #fff;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        #nickname__button:hover {
-            background-color: #777;
-        }
-
-        #chat__container {
-            width: 400px;
-            height: 600px;
-            background-color: #2c2c2c;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        #messages {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-            border-bottom: 1px solid #444;
-
-            scrollbar-width: thin;
-            scrollbar-color: #555 #2c2c2c;
-        }
-
-        #messages::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #messages::-webkit-scrollbar-track {
-            background: #2c2c2c;
-        }
-
-        #messages::-webkit-scrollbar-thumb {
-            background-color: #555;
-            border-radius: 4px;
-        }
-
-        #messages::-webkit-scrollbar-thumb:hover {
-            background-color: #777;
-        }
-
-        #input__container {
-            display: flex;
-            padding: 10px;
-            background-color: #333;
-        }
-
-        #message__input {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            margin-right: 10px;
-            background-color: #444;
-            color: #fff;
-        }
-
-        #send__button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #5a5a5a;
-            color: #fff;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        #send__button:hover {
-            background-color: #777;
-        }
-    </style>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        var socket = io();
-
-        const nickname = localStorage.getItem('nickname');
-
-        if (!nickname) {
-            document.getElementById('nickname__menu').classList.remove('hidden');
-        } else {
-            document.getElementById('chat__container').classList.remove('hidden');
-        }
-
-        const inputNickname = document.getElementById('nickname__input');
-        const buttonNickname = document.getElementById('nickname__button');
-
-        const nicknameRegex = /^[a-zA-Z]{3,15}$/;
-
-        buttonNickname.addEventListener('click', () => {
-            const nicknameValue = inputNickname.value.trim();
-            if (nicknameRegex.test(nicknameValue)) {
-                localStorage.setItem('nickname', nicknameValue);
-                document.getElementById('nickname__menu').classList.add('hidden');
-                document.getElementById('chat__container').classList.remove('hidden');
-            }
-        });
-
-        const input = document.getElementById('message__input');
-        const button = document.getElementById('send__button');
-        const chat = document.getElementById('messages');
-
-        const messageRegex = /^.{1,200}$/;
-
-        button.addEventListener('click', () => {
-            const nickname = localStorage.getItem('nickname');
-            const data = input.value.trim();
-            if (messageRegex.test(data)) {
-                socket.emit('message', `${nickname}: ${data}`);
-                input.value = '';
-            }
-        });
-
-        input.addEventListener('keypress', (event) => {
-            const nickname = localStorage.getItem('nickname');
-            if (event.key === 'Enter') {
-                const data = input.value.trim();
-                if (messageRegex.test(data)) {
-                    socket.emit('message', `${nickname}: ${data}`);
-                    input.value = '';
-                }
-            }
-        });
-
-        socket.on('history', (messages) => {
-            messages.forEach((message) => {
-                const msgElement = document.createElement('p');
-                msgElement.textContent = message;
-                chat.appendChild(msgElement);
-            });
-        });
-
-        socket.on('message', (data) => {
-            const message = document.createElement('p');
-            message.textContent = data;
-            chat.appendChild(message);
-        });
-    </script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script type="module" src="scripts/index.js"></script>
 </body>
 
 </html>
