@@ -85,3 +85,4 @@ socket.on('userList', (nicknames) => {
     const userList = document.getElementById('user__list');
     userList.innerHTML = Object.values(nicknames).join('<br>');
 });
+
